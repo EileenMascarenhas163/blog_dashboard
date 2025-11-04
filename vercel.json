@@ -10,17 +10,15 @@
       },
       {
         "src": "backend/server.js",
-        "use": "@vercel/node"
+        "use": "@vercel/node",
+        "config": {
+          "memory": 1024,
+          "maxDuration": 10
+        }
       }
     ],
     "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "/backend/server.js"
-      },
-      {
-        "src": "/(.*)",
-        "dest": "/frontend/dist/index.html"
-      }
+      { "src": "/api/(.*)", "dest": "/backend/server.js" },
+      { "src": "/(.*)",     "dest": "/frontend/dist/index.html" }
     ]
   }
