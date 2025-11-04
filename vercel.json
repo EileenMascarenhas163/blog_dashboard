@@ -22,11 +22,5 @@
         "src": "/(.*)",
         "dest": "/frontend/dist/index.html"
       }
-    ],
-    "functions": {
-      "backend/server.js": {
-        "memory": 1024,
-        "maxDuration": 10
-      }
-    }
+    ]
   }
