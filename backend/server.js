@@ -63,6 +63,7 @@ app.get('/api/test', async (req, res) => {
   res.json({ message: 'Server is running! Check console for blog data.' });
 });
 
+module.exports = app;
 // Connect to MongoDB
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://a208eileenmas_db_user:2NBKhDAcaPUYnvwK@blogcreate.yykocrv.mongodb.net/blog?retryWrites=true&w=majority';
 
@@ -97,4 +98,3 @@ mongoose.connect(MONGODB_URI)
       console.log(`Backend running on http://localhost:${PORT}`);
     });
   }
-module.exports = app;
