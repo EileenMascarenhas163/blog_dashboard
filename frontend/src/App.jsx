@@ -12,6 +12,7 @@ function DashboardList() {
   // two-level state: section (LinkedIn / Blog) and tab (uploaded / published)
   const [section, setSection] = useState('blog'); // 'blog' or 'linkedin'
   const [tab, setTab] = useState('uploaded'); // 'uploaded' or 'published'
+  const [openSectionDropdown, setOpenSectionDropdown] = useState('blog');
   const navigate = useNavigate();
 
   // fetch all content
@@ -49,9 +50,20 @@ function DashboardList() {
   const uploadedAll = contents.filter((c) => !c.Published);
   const publishedAll = contents.filter((c) => c.Published);
 
-  // If you want different logic per section, replace the following switch
-  const uploaded = section === 'blog' ? uploadedAll : uploadedAll.filter(c => (c.section === 'linkedin' || false));
-  const published = section === 'blog' ? publishedAll : publishedAll.filter(c => (c.section === 'linkedin' || false));
+  const isLinkedIn = (c) => c.platform === 'linkedin' || c.section === 'linkedin';
+
+  const uploadedBySection = {
+    blog: uploadedAll,
+    linkedin: uploadedAll.filter(isLinkedIn),
+  };
+
+  const publishedBySection = {
+    blog: publishedAll,
+    linkedin: publishedAll.filter(isLinkedIn),
+  };
+
+  const uploaded = uploadedBySection[section];
+  const published = publishedBySection[section];
 
   const list = tab === 'published' ? published : uploaded;
 
@@ -59,6 +71,15 @@ function DashboardList() {
   const fmtDate = (d) => (d ? new Date(d).toLocaleDateString('en-IN') : '—');
   const fmtTime = (d) =>
     d ? new Date(d).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : '';
+
+  const toggleSectionDropdown = (name) => {
+    setOpenSectionDropdown((prev) => (prev === name ? null : name));
+  };
+
+  const handleStatusSelect = (name, selectedTab) => {
+    setSection(name);
+    setTab(selectedTab);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -68,60 +89,66 @@ function DashboardList() {
           <h1 className="text-2xl font-bold">Content Dashboard</h1>
         </div>
 
-        {/* Sections (top-level) */}
-        <div className="mb-6">
-          <h3 className="text-sm uppercase opacity-80 mb-2">Sections</h3>
-          <div className="space-y-2">
-            <button
-              onClick={() => { setSection('blog'); setTab('uploaded'); }}
-              className={`w-full text-left px-4 py-3 rounded-lg transition flex items-center justify-between ${
-                section === 'blog' ? 'bg-white text-indigo-700 font-semibold' : 'hover:bg-indigo-700/60'
-              }`}
-            >
-              <span>Blog</span>
-              <span className="ml-2 inline-block bg-white/20 px-2 py-0.5 rounded-full text-sm">
-                {contents.length}
-              </span>
-            </button>
+        {/* Sections with nested statuses */}
+        <div className="space-y-4">
+          {[
+            { label: 'Blog', name: 'blog', total: contents.length },
+            {
+              label: 'LinkedIn',
+              name: 'linkedin',
+              total: contents.filter(isLinkedIn).length,
+            },
+          ].map(({ label, name, total }) => {
+            const isOpen = openSectionDropdown === name;
+            return (
+              <div key={name} className="bg-white/5 rounded-xl p-3">
+                <button
+                  onClick={() => toggleSectionDropdown(name)}
+                  className={`w-full flex items-center justify-between text-left px-3 py-2 rounded-lg transition ${
+                    section === name ? 'bg-white text-indigo-700 font-semibold' : 'hover:bg-indigo-700/60'
+                  }`}
+                >
+                  <span>{label}</span>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="inline-block bg-white/20 px-2 py-0.5 rounded-full">{total}</span>
+                    <svg
+                      className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
 
-            <button
-              onClick={() => { setSection('linkedin'); setTab('uploaded'); }}
-              className={`w-full text-left px-4 py-3 rounded-lg transition flex items-center justify-between ${
-                section === 'linkedin' ? 'bg-white text-indigo-700 font-semibold' : 'hover:bg-indigo-700/60'
-              }`}
-            >
-              <span>LinkedIn</span>
-              <span className="ml-2 inline-block bg-white/20 px-2 py-0.5 rounded-full text-sm">
-                {contents.filter(c => c.platform === 'linkedin').length}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs (Uploaded / Published) */}
-        <div className="mt-auto">
-          <h3 className="text-sm uppercase opacity-80 mb-2">Status</h3>
-          <nav className="space-y-2">
-            <button
-              onClick={() => setTab('uploaded')}
-              className={`w-full text-left px-4 py-3 rounded-lg transition flex items-center justify-between ${
-                tab === 'uploaded' ? 'bg-white text-indigo-700 font-semibold' : 'hover:bg-indigo-700/60'
-              }`}
-            >
-              <span>Uploaded</span>
-              <span className="ml-2 inline-block bg-white/20 px-2 py-0.5 rounded-full text-sm">{uploaded.length}</span>
-            </button>
-
-            <button
-              onClick={() => setTab('published')}
-              className={`w-full text-left px-4 py-3 rounded-lg transition flex items-center justify-between ${
-                tab === 'published' ? 'bg-white text-indigo-700 font-semibold' : 'hover:bg-indigo-700/60'
-              }`}
-            >
-              <span>Published</span>
-              <span className="ml-2 inline-block bg-white/20 px-2 py-0.5 rounded-full text-sm">{published.length}</span>
-            </button>
-          </nav>
+                {isOpen && (
+                  <div className="mt-2 space-y-2 text-sm">
+                    {['uploaded', 'published'].map((status) => {
+                      const isActive = section === name && tab === status;
+                      const count =
+                        status === 'uploaded'
+                          ? uploadedBySection[name].length
+                          : publishedBySection[name].length;
+                      return (
+                        <button
+                          key={status}
+                          onClick={() => handleStatusSelect(name, status)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition ${
+                            isActive ? 'bg-white text-indigo-700 font-semibold' : 'hover:bg-white/10 text-white/80'
+                          }`}
+                        >
+                          <span className="capitalize">{status}</span>
+                          <span className="inline-block bg-white/20 px-2 py-0.5 rounded-full text-xs">{count}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </aside>
 
@@ -173,29 +200,29 @@ function DashboardList() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 text-gray-500 w-28">
+                  {/* <div className="flex items-center gap-1 text-gray-500 w-28">
                     <Folder className="w-4 h-4" />
                     <span className="text-sm">{section === 'blog' ? 'blog creation' : 'linkedin'}</span>
-                  </div>
+                  </div> */}
 
                   <div className="flex gap-2">
-                    <a
+                    {/* <a
                       href={item.doc ? `https://docs.google.com/document/d/${item.doc}` : '#'}
                       target="_blank"
                       rel="noreferrer"
                       className="px-3 py-1 bg-blue-600 text-white rounded text-sm"
                     >
                       Open
-                    </a>
+                    </a> */}
 
-                    {tab === 'uploaded' && !item.Published && (
+                    {/* {tab === 'uploaded' && !item.Published && (
                       <button
                         onClick={() => publishBlog(item._id)}
                         className="px-3 py-1 bg-emerald-600 text-white rounded text-sm"
                       >
                         Publish
                       </button>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </li>
