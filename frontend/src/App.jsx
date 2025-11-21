@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FileText, Folder } from 'lucide-react';
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
-import EditorPage from './EditorPage'; // Full page editor
+import ViewPage from './ViewPage'; // Read-only view page
 
 function DashboardList() {
   const [contents, setContents] = useState([]);
@@ -181,10 +181,10 @@ function DashboardList() {
                 <FileText className="w-5 h-5 text-indigo-600" />
 
                 <div className="flex-1">
-                  {/* Navigate to full-page editor on click */}
+                  {/* Navigate to view page on click */}
                   <button
                     className="text-left w-full"
-                    onClick={() => navigate(`/edit/${item._id}`)}
+                    onClick={() => navigate(`/view/${item._id}`)}
                   >
                     <p className="font-medium text-gray-900 truncate">{item.topic}</p>
                     <p className="text-sm text-gray-500 truncate" style={{ maxWidth: '60ch' }}>
@@ -261,7 +261,7 @@ export default function AppRouter() {
       <Routes>
         <Route path="/" element={<DashboardList />} />
         <Route path="/create" element={<CreateRedirect />} />
-        <Route path="/edit/:id" element={<EditorPage />} />
+        <Route path="/view/:id" element={<ViewPage />} />
       </Routes>
     </BrowserRouter>
   );
